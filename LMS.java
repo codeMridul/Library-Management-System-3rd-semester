@@ -194,7 +194,8 @@ class Main extends LMS
             System.out.println(e.getMessage());
         }
         String bookNames[]={"Introduction to Algorithms","The C Programming Language","Code"};
-        List<String> list = Arrays.asList(bookNames);
+        List<String> list = new ArrayList<>();
+        Collections.addAll(list, bookNames);
         System.out.println("1. To issue.");
         System.out.println("2. To return.");
         System.out.print("Enter you choice: ");
@@ -214,23 +215,26 @@ class Main extends LMS
                 list.remove(bookIndex-1);
             }         
         }
-        System.out.println(list);
-
-
-        
-
-
-
-
-
-
-
-
-
+        else if(ch==2)
+        {
+            String tableName="Student_"+Integer.toString(studentId)+"_book";
+            String deleteTable= "DROP TABLE '"+tableName+"'";
+            try
+            {
+                Statement stmt = con.createStatement();
+                System.out.println(deleteTable);
+                stmt.executeUpdate(deleteTable);
+            }
+            catch(SQLException e)
+            {
+                System.out.println(e.getMessage());
+            }
+        }  
         if (con != null) 
         {
             try 
             {
+                con.commit();
                 con.close(); 
             } 
             catch (SQLException e) {}
