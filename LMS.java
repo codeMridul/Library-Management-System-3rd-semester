@@ -1,52 +1,113 @@
 /*
 @author : Mridul Mishra
 */
+import java.io.*;
 import java.sql.*;
-//import java.io.*;
 import java.util.*;
 
 public class LMS 
 {
     static Connection con=null;
-    Scanner in= new Scanner(System.in);
-    public void login()
+    int c=3;
+    BufferedReader in =new BufferedReader(new InputStreamReader(System.in));
+    public int login()throws IOException
     {
         System.out.print("Enter your UserId: ");
-        int uId= in.nextInt();
-        System.out.println(("\nEnter the Password: "));
-        String psd= in.nextLine();
+        int uId= Integer.parseInt(in.readLine());
+        System.out.print("\nEnter the Password: ");
+        String psd= in.readLine();
         String fetchData="SELECT password from studentData where userId= '"+Integer.toString(uId)+"'"; 
         try
         {
             PreparedStatement pstmt = con.prepareStatement(fetchData);
             ResultSet rSet=pstmt.executeQuery();
-            if (rSet.getString("password")==psd)
+            String receivedPassword=rSet.getString("password");
+            if (receivedPassword.contentEquals(psd)==true)
             {
                 System.out.print("\033[H\033[2J");  
                 System.out.flush();
                 System.out.println("Login Successful\n\n");
+                c++;
             }
             else
-            {
-                System.out.println("Wrong Password, Enter Again.  :)");
+            {   
                 System.out.print("\033[H\033[2J");  
                 System.out.flush();
-                login();
+                System.out.println("Wrong Password, Enter Again.  :)");
+                c--;
+                System.out.println("Chances Left : "+c);
+                if(c!=0)
+                {
+                    login();
+                }
+                else
+                {
+                    System.out.print("\033[H\033[2J");  
+                    System.out.flush();
+                    System.out.println("</Attempted to login 3 times with wrong userId/password>");
+                    System.exit(0);
+                }                
             }
         }
-        catch(Exception e)
+        catch(SQLException e)
         {
             System.out.println(e.getMessage());
-            System.out.println("jhg");
         }
-
+        return uId;
     }
-    public void signup()
+    public int signup() throws IOException
     {
-
-    }
-    
+        System.out.print("Enter your UserId: ");
+        int uId= Integer.parseInt(in.readLine());
+        System.out.print("\nEnter the Password: ");
+        String psd= in.readLine();
+        String insertData= "INSERT INTO studentdata(userId, password) VALUES(?,?)";
+        int stuId=0;
+        try
+        {
+            PreparedStatement pstmt = con.prepareStatement(insertData);
+            pstmt.setInt(1, uId);
+            pstmt.setString(2, psd);
+            pstmt.executeUpdate();
+            System.out.print("\033[H\033[2J");  
+            System.out.flush();
+            System.out.println("</New User Created>");
+            System.out.println("Login to continue: ");
+            stuId=login();
+        }
+        catch(SQLException e)
+        {
+            System.out.println(e.getMessage());
+            System.out.println("SignUp Error");
+        } 
+        return stuId;     
+    } 
+    public void bookIssue(int studentId,String bookName )
+    {
+        String tableName="Sudent_"+Integer.toString(studentId)+"_book";
+        String createTable="CREATE TABLE IF NOT EXISTS "+tableName+"(\n"
+        + " id integer PRIMARY KEY,\n"
+        + " studentId integer NOT,\n"
+        + " bookName text NOT NULL\n"
+        + ");"; 
+        String insertData= "INSERT INTO "+tableName+"(studentId, bookName) VALUES(?,?)"; 
+        try
+        {
+            Statement stmt = con.createStatement();  
+            stmt.execute(createTable);
+           // PreparedStatement pstmt = con.prepareStatement(insertData);
+            //pstmt.setInt(1, studentId);
+            //pstmt.setString(2, bookName);
+            //pstmt.executeUpdate();
+        }
+        catch(SQLException e)
+        {
+            System.out.println(e.getMessage());
+            System.out.println("Error in book issue...!");
+        }
+    } 
 }
+
 class Main extends LMS
 {
     public static void connect()
@@ -55,7 +116,7 @@ class Main extends LMS
         {
             Class.forName("org.sqlite.JDBC");
             con=DriverManager.getConnection("jdbc:sqlite:LMS.db");
-            System.out.println("\n\nConnected to the Liabrary Database.....\n\n");
+            System.out.println("\n\nConnected to the Library Database.....\n");
         }
         catch(Exception e)
         {
@@ -75,7 +136,7 @@ class Main extends LMS
             Thread.currentThread().interrupt();
         }
     }
-    public static void main(String[] args) 
+    public static void main(String[] args) throws IOException
     {
         System.out.print("Connecting");
         for(int i=1;i<=4;i++)
@@ -88,53 +149,76 @@ class Main extends LMS
         connect();
 
         Main ob=new Main();
-        Scanner in=new Scanner(System.in);
+        BufferedReader in =new BufferedReader(new InputStreamReader(System.in));
 
         System.out.println("Student Portal :)\n ");
-        System.out.println("Press 1\n     To login   \nPress 2\n     To Create New Account");
-        int ch= in.nextInt();
+        System.out.println("Press 1: To login   \nPress 2: To Create New Account");
+        int ch= Integer.parseInt(in.readLine());
 
         String createTable="CREATE TABLE IF NOT EXISTS studentData(\n"
         + " id integer PRIMARY KEY,\n"
-        + " userId integer NOT NULL,\n"
+        + " userId integer NOT NULL UNIQUE,\n"
         + " password text NOT NULL\n"
-        + ");";
-        /*Statement stmt = con.createStatement();  
-        stmt.execute(createTable);  */
-        
-
+        + ");";  
+        int studentId=0;    
         try
         {
-            System.out.println("bjbdvfbdkb");
             Statement stmt = con.createStatement();  
             stmt.execute(createTable);
             if(ch==1)
             {
                 System.out.print("\033[H\033[2J");  
                 System.out.flush();
-                ob.login();
+                studentId=ob.login();
             }
             else if(ch==2)
             {
                 System.out.print("\033[H\033[2J");  
                 System.out.flush();
-                ob.signup();
+                studentId=ob.signup();
             }
             else
             {
                 System.out.print("\033[H\033[2J");  
                 System.out.flush();
                 System.out.println("You don't wish to login/signup\nGood bye\n\n");
+                System.exit(0);
             }  
         }
-        catch(Exception e)
+        catch(SQLException e)
         {
             System.out.println("fds");
             System.out.println(e.getMessage());
         }
+        String bookNames[]={"Introduction to Algorithms","The C Programming Language","Code"};
+        System.out.println("Books in the Library:");
+        for(int i=0;i<bookNames.length;i++)
+        {
+            System.out.println((i+1)+" "+bookNames[i]+".");
+        }
+        System.out.print("Enter the index of the book: ");
+        List<String> list = Arrays.asList(bookNames);
+        int bookIndex= Integer.parseInt(in.readLine());
+        ob.bookIssue(studentId,list.get(bookIndex-1));
+
 
         
 
 
-    }
+
+
+
+
+
+
+
+        if (con != null) 
+        {
+            try 
+            {
+                con.close(); 
+            } 
+            catch (SQLException e) {}
+        }
+    }    
 }
