@@ -5,12 +5,14 @@ import java.io.*;
 import java.sql.*;
 import java.util.*;
 
+import jdk.nashorn.internal.ir.LiteralNode;
+
 public class LMS 
 {
     static Connection con=null;
     int c=3;
     BufferedReader in =new BufferedReader(new InputStreamReader(System.in));
-    public int login()throws IOException
+    public int login()throws IOException                                       //Login into the database function
     {
         System.out.print("Enter your UserId: ");
         int uId= Integer.parseInt(in.readLine());
@@ -55,7 +57,7 @@ public class LMS
         }
         return uId;
     }
-    public int signup() throws IOException
+    public int signup() throws IOException                               //SignUp to the database function
     {
         System.out.print("Enter your UserId: ");
         int uId= Integer.parseInt(in.readLine());
@@ -82,12 +84,12 @@ public class LMS
         } 
         return stuId;     
     } 
-    public void bookIssue(int studentId,String bookName )
+    public boolean bookIssue(int studentId,String bookName )
     {
-        String tableName="Sudent_"+Integer.toString(studentId)+"_book";
+        String tableName="Student_"+Integer.toString(studentId)+"_book";
         String createTable="CREATE TABLE IF NOT EXISTS "+tableName+"(\n"
         + " id integer PRIMARY KEY,\n"
-        + " studentId integer NOT,\n"
+        + " studentId integer NOT NULL,\n"
         + " bookName text NOT NULL\n"
         + ");"; 
         String insertData= "INSERT INTO "+tableName+"(studentId, bookName) VALUES(?,?)"; 
@@ -95,15 +97,17 @@ public class LMS
         {
             Statement stmt = con.createStatement();  
             stmt.execute(createTable);
-           // PreparedStatement pstmt = con.prepareStatement(insertData);
-            //pstmt.setInt(1, studentId);
-            //pstmt.setString(2, bookName);
-            //pstmt.executeUpdate();
+            PreparedStatement pstmt = con.prepareStatement(insertData);
+            pstmt.setInt(1, studentId);
+            pstmt.setString(2, bookName);
+            pstmt.executeUpdate();
+            return true;
         }
         catch(SQLException e)
         {
             System.out.println(e.getMessage());
             System.out.println("Error in book issue...!");
+            return false;
         }
     } 
 }
@@ -187,19 +191,30 @@ class Main extends LMS
         }
         catch(SQLException e)
         {
-            System.out.println("fds");
             System.out.println(e.getMessage());
         }
         String bookNames[]={"Introduction to Algorithms","The C Programming Language","Code"};
-        System.out.println("Books in the Library:");
-        for(int i=0;i<bookNames.length;i++)
-        {
-            System.out.println((i+1)+" "+bookNames[i]+".");
-        }
-        System.out.print("Enter the index of the book: ");
         List<String> list = Arrays.asList(bookNames);
-        int bookIndex= Integer.parseInt(in.readLine());
-        ob.bookIssue(studentId,list.get(bookIndex-1));
+        System.out.println("1. To issue.");
+        System.out.println("2. To return.");
+        System.out.print("Enter you choice: ");
+        ch =Integer.parseInt(in.readLine());
+        if (ch==1)
+        {
+            System.out.println("Books in the Library:");
+            int i=1;
+            for(String str: list)
+            {
+                System.out.println(i++ +". "+str);
+            }
+            System.out.print("Enter the index of the book: ");            
+            int bookIndex= Integer.parseInt(in.readLine());
+            if(ob.bookIssue(studentId,list.get(bookIndex-1)))
+            {
+                list.remove(bookIndex-1);
+            }         
+        }
+        System.out.println(list);
 
 
         
