@@ -4,6 +4,7 @@
 import java.io.*;
 import java.sql.*;
 import java.util.*;
+import java.time.*;
 
 interface operations
 {
@@ -11,7 +12,6 @@ interface operations
     public int signup()throws IOException;
     public boolean bookIssue(int studentId,String bookName );
 }
-
 public class LMS implements operations
 {
     static Connection con=null;
@@ -201,7 +201,7 @@ class Main extends LMS
         {
             System.out.println(e.getMessage());
         }
-        String bookNames[]={"Introduction to Algorithms","The C Programming Language","Code"};
+        String bookNames[]={"Introduction to Algorithms","The C Programming Language","Code","The Soul of a New Machine","Hackers: Heroes of the Computer Revolution","Thinking in Systems: A Primer","The Search: How Google and Its Rivals Rewrote the Rules of Business and Transformed Our Culture"};
         List<String> list = new ArrayList<>();
         Collections.addAll(list, bookNames);
         System.out.println("1. To issue.");
@@ -210,6 +210,8 @@ class Main extends LMS
         ch =Integer.parseInt(in.readLine());
         if (ch==1)
         {
+            System.out.print("\033[H\033[2J");  
+            System.out.flush();
             System.out.println("Books in the Library:");
             int i=1;
             for(String str: list)
@@ -220,8 +222,16 @@ class Main extends LMS
             int bookIndex= Integer.parseInt(in.readLine());
             if(ob.bookIssue(studentId,list.get(bookIndex-1)))
             {
+                System.out.print("\033[H\033[2J");  
+                System.out.flush();
                 list.remove(bookIndex-1);
-            }         
+                System.out.println("User ID: "+ studentId);
+                System.out.println("Books Issued: "+list.get(bookIndex-1));
+                LocalDate date = LocalDate.now();
+                date = date.plusDays(7);
+                System.out.println("Book Return date: "+date);
+                System.out.println("********Thank You*******");
+            }             
         }
         else if(ch==2)
         {
