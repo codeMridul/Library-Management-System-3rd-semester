@@ -10,7 +10,8 @@ interface operations
 {
     public int login()throws IOException;
     public int signup()throws IOException;
-    public boolean bookIssue(int studentId,String bookName );
+    public boolean bookIssue(int studentId, String bookName );
+    public boolean bookReturn(int studentId, String tableName);
 }
 public class LMS implements operations
 {
@@ -92,7 +93,7 @@ public class LMS implements operations
         return stuId;     
     } 
     @Override
-    public boolean bookIssue(int studentId,String bookName )
+    public boolean bookIssue(int studentId,String bookName )                       //Issues the book   
     {
         String tableName="Student_"+Integer.toString(studentId)+"_book";
         String createTable="CREATE TABLE IF NOT EXISTS "+tableName+"(\n"
@@ -117,6 +118,30 @@ public class LMS implements operations
             System.out.println("Error in book issue...!");
             return false;
         }
+    }
+    @Override
+    public boolean bookReturn(int studentId,  String tableName)                  // return books
+    {
+        System.out.println("Student Id: "+studentId);
+        System.out.println("Books in your Account: ");
+        String fetchData="SELECT bookName FROM "+tableName;
+        try
+        {
+            Statement stmt=con.createStatement();  
+            ResultSet rs=stmt.executeQuery(fetchData); 
+            int i=1; 
+            while(rs.next())
+            {
+                System.out.println(i++ +". "+rs.getString("bookName"));
+            }
+            return true;
+        }
+        catch (SQLException e)
+        {
+            System.out.println(e.getMessage());
+            System.out.println("No Data Found...");
+            return false;
+        }       
     } 
 }
 
@@ -235,18 +260,25 @@ class Main extends LMS
         }
         else if(ch==2)
         {
+            System.out.print("\033[H\033[2J");  
+            System.out.flush();
             String tableName="Student_"+Integer.toString(studentId)+"_book";
-            String deleteTable= "DROP TABLE '"+tableName+"'";
-            try
+            if(ob.bookReturn(studentId,tableName))
             {
-                Statement stmt = con.createStatement();
-                System.out.println(deleteTable);
-                stmt.executeUpdate(deleteTable);
+                String deleteTable= "DROP TABLE IF EXISTS '"+tableName+"'";
+                try
+                {
+                    Statement stmt = con.createStatement();
+                    System.out.println(deleteTable);
+                    stmt.executeUpdate(deleteTable);
+                    System.out.println("Books Returned");
+                }
+                catch(SQLException e)
+                {
+                    System.out.println(e.getMessage());
+                }
             }
-            catch(SQLException e)
-            {
-                System.out.println(e.getMessage());
-            }
+            
         }  
         if (con != null) 
         {
