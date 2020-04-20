@@ -5,19 +5,13 @@ import java.io.*;
 import java.sql.*;
 import java.util.*;
 
-interface operations
-{
-    public int login()throws IOException;
-    public int signup()throws IOException;
-    public boolean bookIssue(int studentId,String bookName );
-}
+import jdk.nashorn.internal.ir.LiteralNode;
 
-public class LMS implements operations
+public class LMS 
 {
     static Connection con=null;
     int c=3;
     BufferedReader in =new BufferedReader(new InputStreamReader(System.in));
-    @Override
     public int login()throws IOException                                       //Login into the database function
     {
         System.out.print("Enter your UserId: ");
@@ -63,7 +57,6 @@ public class LMS implements operations
         }
         return uId;
     }
-    @Override
     public int signup() throws IOException                               //SignUp to the database function
     {
         System.out.print("Enter your UserId: ");
@@ -91,7 +84,6 @@ public class LMS implements operations
         } 
         return stuId;     
     } 
-    @Override
     public boolean bookIssue(int studentId,String bookName )
     {
         String tableName="Student_"+Integer.toString(studentId)+"_book";
